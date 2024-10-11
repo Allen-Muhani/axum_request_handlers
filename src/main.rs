@@ -6,7 +6,7 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio::net::TcpListener;
 
@@ -16,7 +16,7 @@ struct UserQuery {
     age: u32,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct Tx {
     amount: u128,
     address: String,
@@ -85,11 +85,13 @@ async fn use_request_headers(header: HeaderMap) -> String {
     format!("The header value for key SMS is {}", sms_header)
 }
 
-async fn send_money(Json(payload): Json<Tx>) -> String {
+async fn send_money(Json(payload): Json<Tx>) -> Json<Tx> {
     let amount = payload.amount;
     let address = payload.address;
 
-    format!("Sending {} to address: {}", amount, address)
+    let tx: Tx = Tx { amount: amount, address: address };
+
+    Json(tx)
 }
 
 async fn send_money_generic(Json(payload): Json<Value>) -> String {
